@@ -2,6 +2,7 @@ import axios from "axios";
 import XLSX from "xlsx";
 import {
   getDateBefore,
+  getDayDifference,
   getStateAbbreviationByName,
   getStateIdByName,
   RKIError,
@@ -118,9 +119,9 @@ export async function getDistrictsFrozenIncidenceHistory(
       history = history.filter((element) => element.date > reference_date);
     }
     if (date) {
-      const filterDate = date.toDateString();
+      const filterDate = date.toISOString();
       history = history.filter(
-        (element) => element.date.toDateString() === filterDate
+        (element) => element.date.toISOString() === filterDate
       );
     }
 
@@ -130,26 +131,37 @@ export async function getDistrictsFrozenIncidenceHistory(
   if (ags) {
     districts = districts.filter((district) => district.ags === ags);
   }
-
+  const checkdays = date ? getDayDifference(new Date(), date) - 1 : days;
   // do we need to fetch archive data as well?
-  const fetchArchiveData = !days
+  const fetchArchiveData = !checkdays
     ? districts.length > 0 && districts[0].history.length > 0
+    : date
+    ? districts.length > 0 && districts[0].history.length == 0
     : districts.length > 0 &&
       districts[0].history.length > 0 &&
-      districts[0].history[0].date > new Date(getDateBefore(days - 1));
+      districts[0].history[0].date > new Date(getDateBefore(checkdays - 1));
 
   if (fetchArchiveData) {
     let archiveData = await getDistrictsFrozenIncidenceHistoryArchive();
     // filter by abbreviation
-    if (ags != null) {
+    if (ags) {
       archiveData = archiveData.filter((district) => district.ags === ags);
     }
     // filter by days
-    if (days != null) {
+    if (days) {
       const reference_date = new Date(getDateBefore(days));
       archiveData = archiveData.map((district) => {
         district.history = district.history.filter(
           (element) => element.date > reference_date
+        );
+        return district;
+      });
+    }
+    if (date) {
+      const filterDate = date.toISOString();
+      archiveData = archiveData.map((district) => {
+        district.history = district.history.filter(
+          (element) => element.date.toISOString() === filterDate
         );
         return district;
       });

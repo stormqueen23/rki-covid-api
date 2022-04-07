@@ -50,7 +50,7 @@ export async function DistrictsMapResponse() {
 
   const svgBuffer = Buffer.from(stringify(mapData));
 
-  return sharp(svgBuffer).png({ quality: 75 }).toBuffer();
+  return sharp(svgBuffer).png({ quality: 100 }).toBuffer();
 }
 
 export async function DistrictsLegendMapResponse() {
@@ -87,7 +87,7 @@ export async function DistrictsLegendMapResponse() {
     )
   )
     .composite([{ input: svgBuffer, top: 100, left: 180 }])
-    .png({ quality: 75 })
+    .png({ quality: 100 })
     .toBuffer();
 }
 
@@ -119,7 +119,7 @@ export async function StatesMapResponse() {
 
   const svgBuffer = Buffer.from(stringify(mapData));
 
-  return sharp(svgBuffer).png({ quality: 75 }).toBuffer();
+  return sharp(svgBuffer).png({ quality: 100 }).toBuffer();
 }
 
 export async function StatesLegendMapResponse() {
@@ -158,7 +158,7 @@ export async function StatesLegendMapResponse() {
     )
   )
     .composite([{ input: svgBuffer, top: 100, left: 180 }])
-    .png({ quality: 75 })
+    .png({ quality: 100 })
     .toBuffer();
 }
 
@@ -205,7 +205,7 @@ export async function DistrictsHistoryMapResponse(
   const svgBuffer = Buffer.from(stringify(mapData));
 
   if (mapType == mapTypes.map) {
-    return sharp(svgBuffer).png({ quality: 75 }).toBuffer();
+    return sharp(svgBuffer).png({ quality: 100 }).toBuffer();
   } else if (mapType == mapTypes.legendMap) {
     return sharp(
       getMapBackground(
@@ -215,7 +215,7 @@ export async function DistrictsHistoryMapResponse(
       )
     )
       .composite([{ input: svgBuffer, top: 100, left: 180 }])
-      .png({ quality: 75 })
+      .png({ quality: 100 })
       .toBuffer();
   }
 }
@@ -264,7 +264,7 @@ export async function StatesHistoryMapResponse(
   const svgBuffer = Buffer.from(stringify(mapData));
 
   if (mapType == mapTypes.map) {
-    return sharp(svgBuffer).png({ quality: 75 }).toBuffer();
+    return sharp(svgBuffer).png({ quality: 100 }).toBuffer();
   } else if (mapType == mapTypes.legendMap) {
     return sharp(
       getMapBackground(
@@ -274,7 +274,7 @@ export async function StatesHistoryMapResponse(
       )
     )
       .composite([{ input: svgBuffer, top: 100, left: 180 }])
-      .png({ quality: 75 })
+      .png({ quality: 100 })
       .toBuffer();
   }
 }
@@ -308,7 +308,7 @@ export async function StatesHospitalizationMapResponse() {
 
   const svgBuffer = Buffer.from(stringify(mapData));
 
-  return sharp(svgBuffer).png({ quality: 75 }).toBuffer();
+  return sharp(svgBuffer).png({ quality: 100 }).toBuffer();
 }
 
 export async function StatesHospitalizationLegendMapResponse() {
@@ -347,7 +347,7 @@ export async function StatesHospitalizationLegendMapResponse() {
     )
   )
     .composite([{ input: svgBuffer, top: 100, left: 180 }])
-    .png({ quality: 75 })
+    .png({ quality: 100 })
     .toBuffer();
 }
 
@@ -389,7 +389,7 @@ export async function StatesHospitalizationHistoryMapResponse(
   const svgBuffer = Buffer.from(stringify(mapData));
 
   if (mapType == mapTypes.map) {
-    return sharp(svgBuffer).png({ quality: 75 }).toBuffer();
+    return sharp(svgBuffer).png({ quality: 100 }).toBuffer();
   } else if (mapType == mapTypes.legendMap) {
     return sharp(
       getMapBackground(
@@ -399,7 +399,7 @@ export async function StatesHospitalizationHistoryMapResponse(
       )
     )
       .composite([{ input: svgBuffer, top: 100, left: 180 }])
-      .png({ quality: 75 })
+      .png({ quality: 100 })
       .toBuffer();
   }
 }

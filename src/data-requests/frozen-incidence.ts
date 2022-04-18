@@ -51,9 +51,6 @@ async function getDistrictsFrozenIncidenceHistoryArchive(): Promise<
   // table starts in row 5 (parameter is zero indexed)
   const json = XLSX.utils.sheet_to_json(sheet, { range: 4 });
 
-  // date is in cell A2
-  const lastUpdate = new Date(response.headers["last-modified"]);
-
   let districts = json
     .filter((district) => !!district["NR"])
     .map((district) => {
@@ -96,7 +93,6 @@ export async function getDistrictsFrozenIncidenceHistory(
   // table starts in row 5 (parameter is zero indexed)
   const json = XLSX.utils.sheet_to_json(sheet, { range: 4 });
 
-  // date is in cell A2
   const lastUpdate = new Date(response.headers["last-modified"]);
 
   let districts = json.map((district) => {
@@ -115,16 +111,16 @@ export async function getDistrictsFrozenIncidenceHistory(
     });
 
     if (days) {
-      const reference_date = new Date(getDateBefore(days));
-      history = history.filter((element) => element.date > reference_date);
+      const referenceDate = new Date(getDateBefore(days));
+      history = history.filter((element) => element.date > referenceDate);
     }
     if (date) {
-      const filterDate = date.toISOString();
+      const referenceDate = date.toDateString();
       history = history.filter(
-        (element) => element.date.toISOString() === filterDate
+        (element) => element.date.toDateString() === referenceDate
       );
     }
-
+    
     return { ags, name, history };
   });
 
@@ -149,19 +145,19 @@ export async function getDistrictsFrozenIncidenceHistory(
     }
     // filter by days
     if (days) {
-      const reference_date = new Date(getDateBefore(days));
+      const referenceDate = new Date(getDateBefore(days));
       archiveData = archiveData.map((district) => {
         district.history = district.history.filter(
-          (element) => element.date > reference_date
+          (element) => element.date > referenceDate
         );
         return district;
       });
     }
     if (date) {
-      const filterDate = date.toISOString();
+      const referenceDate = date.toDateString();
       archiveData = archiveData.map((district) => {
         district.history = district.history.filter(
-          (element) => element.date.toISOString() === filterDate
+          (element) => element.date.toDateString() == referenceDate
         );
         return district;
       });
@@ -209,8 +205,6 @@ async function getStatesFrozenIncidenceHistoryArchive(): Promise<
   const sheet = workbook.Sheets["BL_7-Tage-Inzidenz (fixiert)"];
   // table starts in row 5 (parameter is zero indexed)
   const json = XLSX.utils.sheet_to_json(sheet, { range: 4 });
-
-  const lastUpdate = new Date(response.headers["last-modified"]);
 
   let states = json.map((states) => {
     const name = states["__EMPTY"]; //there is no header
@@ -287,7 +281,7 @@ export async function getStatesFrozenIncidenceHistory(
     return { abbreviation, id, name, history };
   });
 
-  if (abbreviation != null) {
+  if (abbreviation) {
     states = states.filter((states) => states.abbreviation === abbreviation);
   }
 
@@ -302,17 +296,26 @@ export async function getStatesFrozenIncidenceHistory(
     // load all archive data
     let archiveData = await getStatesFrozenIncidenceHistoryArchive();
     // filter by abbreviation
-    if (abbreviation != null) {
+    if (abbreviation) {
       archiveData = archiveData.filter(
         (state) => state.abbreviation === abbreviation
       );
     }
     // filter by days
-    if (days != null) {
-      const reference_date = new Date(getDateBefore(days));
+    if (days) {
+      const referenceDate = new Date(getDateBefore(days));
       archiveData = archiveData.map((state) => {
         state.history = state.history.filter(
-          (element) => element.date > reference_date
+          (element) => element.date > referenceDate
+        );
+        return state;
+      });
+    }
+    if (date) {
+      const referenceDate = date.toDateString();
+      archiveData = archiveData.map((state) => {
+        state.history = state.history.filter(
+          (element) => element.date.toDateString() == referenceDate
         );
         return state;
       });

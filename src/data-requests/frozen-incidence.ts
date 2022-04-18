@@ -2,7 +2,6 @@ import axios from "axios";
 import XLSX from "xlsx";
 import {
   getDateBefore,
-  getDayDifference,
   getStateAbbreviationByName,
   getStateIdByName,
   RKIError,
@@ -32,7 +31,98 @@ export interface DistrictsFrozenIncidenceData {
   }[];
 }
 
-async function getDistrictsFrozenIncidenceHistoryArchive(): Promise<
+export async function getDistrictsFrozenIncidenceHistory(
+  days?: number,
+  ags?: string,
+  date?: Date
+): Promise<ResponseData<DistrictsFrozenIncidenceData[]>> {
+  const [districts, archiveData] = await Promise.all([
+    getDistrictsFrozenIncidenceActual(),
+    getDistrictsFrozenIncidenceArchive(),
+  ]);
+  // merge archive data with current data
+  districts.data = districts.data.map((district) => {
+    district.history.unshift(
+      ...archiveData.find((element) => element.ags === district.ags).history
+    );
+    return district;
+  });
+  // filter out what is not needed
+  // filter by ags
+  if (ags) {
+    districts.data = districts.data.filter((district) => district.ags === ags);
+  }
+  // filter by days
+  if (days) {
+    const referenceDate = new Date(getDateBefore(days));
+    districts.data = districts.data.map((district) => {
+      district.history = district.history.filter(
+        (element) => element.date > referenceDate
+      );
+      return district;
+    });
+  }
+  // filter by date
+  if (date) {
+    const referenceDate = date.toISOString();
+    districts.data = districts.data.map((district) => {
+      district.history = district.history.filter(
+        (element) => element.date.toISOString() === referenceDate
+      );
+      return district;
+    });
+  }
+  return {
+    data: districts.data,
+    lastUpdate: districts.lastUpdate,
+  };
+}
+
+async function getDistrictsFrozenIncidenceActual(): Promise<
+  ResponseData<DistrictsFrozenIncidenceData[]>
+> {
+  const response = await axios.get(
+    "https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Daten/Fallzahlen_Kum_Tab_aktuell.xlsx?__blob=publicationFile",
+    {
+      responseType: "arraybuffer",
+    }
+  );
+  const data = response.data;
+  if (data.error) {
+    throw new RKIError(data.error, response.config.url);
+  }
+
+  const workbook = XLSX.read(data, { type: "buffer", cellDates: true });
+  const sheet = workbook.Sheets["LK_7-Tage-Inzidenz (fixiert)"];
+  // table starts in row 5 (parameter is zero indexed)
+  const json = XLSX.utils.sheet_to_json(sheet, { range: 4 });
+
+  const lastUpdate = new Date(response.headers["last-modified"]);
+
+  const districts = json.map((district) => {
+    const name = district["LK"];
+    const ags = district["LKNR"].toString().padStart(5, "0");
+
+    let history = [];
+
+    // get all date keys
+    const dateKeys = Object.keys(district);
+    // ignore the first two elements (LK, LKNR)
+    dateKeys.splice(0, 2);
+    dateKeys.forEach((dateKey) => {
+      const date = getDateFromString(dateKey.toString());
+      history.push({ weekIncidence: district[dateKey], date });
+    });
+    return { ags, name, history };
+  });
+
+  return {
+    data: districts,
+    lastUpdate: lastUpdate,
+  };
+}
+
+async function getDistrictsFrozenIncidenceArchive(): Promise<
   DistrictsFrozenIncidenceData[]
 > {
   const response = await axios.get(
@@ -46,12 +136,12 @@ async function getDistrictsFrozenIncidenceHistoryArchive(): Promise<
     throw new RKIError(data.error, response.config.url);
   }
 
-  var workbook = XLSX.read(data, { type: "buffer", cellDates: true });
+  const workbook = XLSX.read(data, { type: "buffer", cellDates: true });
   const sheet = workbook.Sheets["LK_7-Tage-Inzidenz (fixiert)"];
   // table starts in row 5 (parameter is zero indexed)
   const json = XLSX.utils.sheet_to_json(sheet, { range: 4 });
 
-  let districts = json
+  const districts = json
     .filter((district) => !!district["NR"])
     .map((district) => {
       const name = district["LK"];
@@ -70,111 +160,6 @@ async function getDistrictsFrozenIncidenceHistoryArchive(): Promise<
       return { ags, name, history };
     });
   return districts;
-}
-
-export async function getDistrictsFrozenIncidenceHistory(
-  days?: number,
-  ags?: string,
-  date?: Date
-): Promise<ResponseData<DistrictsFrozenIncidenceData[]>> {
-  const response = await axios.get(
-    "https://www.rki.de/DE/Content/InfAZ/N/Neuartiges_Coronavirus/Daten/Fallzahlen_Kum_Tab_aktuell.xlsx?__blob=publicationFile",
-    {
-      responseType: "arraybuffer",
-    }
-  );
-  const data = response.data;
-  if (data.error) {
-    throw new RKIError(data.error, response.config.url);
-  }
-
-  var workbook = XLSX.read(data, { type: "buffer", cellDates: true });
-  const sheet = workbook.Sheets["LK_7-Tage-Inzidenz (fixiert)"];
-  // table starts in row 5 (parameter is zero indexed)
-  const json = XLSX.utils.sheet_to_json(sheet, { range: 4 });
-
-  const lastUpdate = new Date(response.headers["last-modified"]);
-
-  let districts = json.map((district) => {
-    const name = district["LK"];
-    const ags = district["LKNR"].toString().padStart(5, "0");
-
-    let history = [];
-
-    // get all date keys
-    const dateKeys = Object.keys(district);
-    // ignore the first two elements (LK, LKNR)
-    dateKeys.splice(0, 2);
-    dateKeys.forEach((dateKey) => {
-      const date = getDateFromString(dateKey.toString());
-      history.push({ weekIncidence: district[dateKey], date });
-    });
-
-    if (days) {
-      const referenceDate = new Date(getDateBefore(days));
-      history = history.filter((element) => element.date > referenceDate);
-    }
-    if (date) {
-      const referenceDate = date.toDateString();
-      history = history.filter(
-        (element) => element.date.toDateString() === referenceDate
-      );
-    }
-    
-    return { ags, name, history };
-  });
-
-  if (ags) {
-    districts = districts.filter((district) => district.ags === ags);
-  }
-  const checkdays = date ? getDayDifference(new Date(), date) - 1 : days;
-  // do we need to fetch archive data as well?
-  const fetchArchiveData = !checkdays
-    ? districts.length > 0 && districts[0].history.length > 0
-    : date
-    ? districts.length > 0 && districts[0].history.length == 0
-    : districts.length > 0 &&
-      districts[0].history.length > 0 &&
-      districts[0].history[0].date > new Date(getDateBefore(checkdays - 1));
-
-  if (fetchArchiveData) {
-    let archiveData = await getDistrictsFrozenIncidenceHistoryArchive();
-    // filter by abbreviation
-    if (ags) {
-      archiveData = archiveData.filter((district) => district.ags === ags);
-    }
-    // filter by days
-    if (days) {
-      const referenceDate = new Date(getDateBefore(days));
-      archiveData = archiveData.map((district) => {
-        district.history = district.history.filter(
-          (element) => element.date > referenceDate
-        );
-        return district;
-      });
-    }
-    if (date) {
-      const referenceDate = date.toDateString();
-      archiveData = archiveData.map((district) => {
-        district.history = district.history.filter(
-          (element) => element.date.toDateString() == referenceDate
-        );
-        return district;
-      });
-    }
-    // merge archive data with current data
-    districts = districts.map((district) => {
-      district.history.unshift(
-        ...archiveData.find((element) => element.ags === district.ags).history
-      );
-      return district;
-    });
-  }
-
-  return {
-    data: districts,
-    lastUpdate: lastUpdate,
-  };
 }
 
 export interface StatesFrozenIncidenceData {

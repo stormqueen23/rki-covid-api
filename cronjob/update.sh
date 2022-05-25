@@ -59,8 +59,8 @@ python process_update_docker.py
 
 # Print message, download and modify meta data from RKI server
 DATE2=$(date '+%Y-%m-%dT%H:%M:%SZ')
-echo "$DATE2: executing python schedule_meta.py"
-python schedule_meta.py
+echo "$DATE2: executing python download_meta.py"
+python download_meta.py
 
 # print message update finished
 DATE2=$(date '+%Y-%m-%dT%H:%M:%SZ')

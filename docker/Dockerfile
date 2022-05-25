@@ -52,11 +52,11 @@ RUN apk add --no-cache --virtual .vips-deps build-base binutils zlib-dev libxml2
      libjpeg-turbo-dev libexif-dev lcms2-dev fftw-dev giflib-dev libpng-dev libwebp-dev orc-dev tiff-dev \
      poppler-dev librsvg-dev libgsf-dev openexr-dev libheif-dev libimagequant-dev pango-dev py-gobject3-dev \
   && npm install \
-  && apk del .vips-deps
+  && apk del --purge .vips-deps \
+  && rm -rf /var/cache/apk/*
 
 # If you are building your code for production
 # RUN npm ci --only=production
-
 RUN npm install pm2 -g
 
 # Bundle app source

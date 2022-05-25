@@ -10,6 +10,7 @@ services:
     networks:
       - redis-net
   rki-api:
+    container_name: rki-covid-api
     build:
       context: ./
       dockerfile: ./docker/Dockerfile
@@ -17,10 +18,21 @@ services:
     ports:
       - "8080:3000"
     depends_on:
+      - fix-incidence
       - redis
     environment:
       - REDISHOST=redis
     volumes:
       - ./src/cache:/usr/src/app/dist/cache
+      - Fallzahlen:/usr/src/app/Fallzahlen:ro
     networks:
       - redis-net
+  fix-incidence:
+    container_name: cronjob
+    build:
+      context: ./cronjob/
+      dockerfile: ./Dockerfile
+    volumes:
+      - Fallzahlen:/usr/src/app/Fallzahlen
+volumes:
+  Fallzahlen:

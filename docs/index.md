@@ -119,15 +119,28 @@ services:
     networks:
       - redis-net
   rki-api:
+    container_name: rki-covid-api
     image: marlon360/rki-covid-server:v2
     ports:
       - "8080:3000"
     depends_on:
+      - fix-incidence
       - redis
     environment:
       - REDISHOST=redis
     networks:
       - redis-net
+    volumes:
+      - Fallzahlen:/usr/src/app/Fallzahlen:ro
+  fix-incidence:
+    container_name: cronjob
+    build:
+      context: ./cronjob/
+      dockerfile: ./Dockerfile
+    volumes:
+      - Fallzahlen:/usr/src/app/Fallzahlen
+volumes:
+  Fallzahlen:
 ```
 
 2. Start Server:

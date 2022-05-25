@@ -30,7 +30,7 @@ RUN set -x -o pipefail \
                  --disable-static \
                  --disable-dependency-tracking \
                  --enable-silent-rules \
-  && make -s install-strip \
+  && make -j4 -s install-strip \
   && cd .. \
   && rm -rf /tmp/vips-${VIPS_VERSION} \
   && apk del --purge .vips-dependencies \

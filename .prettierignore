@@ -10,3 +10,8 @@ Fallzahlen/new/*.json
 Fallzahlen/history/*.json
 Fallzahlen/frozen-incidence/*.json
 Fallzahlen/recoveredData/*.json
+updater/Fallzahlen/meta/*.json
+updater/Fallzahlen/new/*.json
+updater/Fallzahlen/history/*.json
+updater/Fallzahlen/frozen-incidence/*.json
+updater/Fallzahlen/recoveredData/*.json

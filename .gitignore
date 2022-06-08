@@ -13,3 +13,10 @@ dataStore/new/*.json
 dataStore/history/*.json
 dataStore/frozen-incidence/*.json
 dataStore/accumulated/*.json
+dataStore/*.xlsm
+updater/dataStore/meta/*.json
+updater/dataStore/new/*.json
+updater/dataStore/history/*.json
+updater/dataStore/frozen-incidence/*.json
+updater/dataStore/accumulated/*.json
+updater/dataStore/*.xlsm

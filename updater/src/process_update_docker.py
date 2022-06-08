@@ -8,12 +8,8 @@ import pytz
 # %%
 url = "https://www.arcgis.com/sharing/rest/content/items/f10774f1c63e40168479a1feb6c7ca74/data"
 date_latest = datetime.now(pytz.timezone('Europe/Berlin')).date().strftime('%Y-%m-%d')
-
 BV_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'Bevoelkerung',
                                'Bevoelkerung.csv')
-
-iso_date_re = '([0-9]{4})(-?)(1[0-2]|0[1-9])\\2(3[01]|0[1-9]|[12][0-9])'
-pattern = 'RKI_COVID19'
 BV_dtypes = {'AGS': 'str', 'Name': 'str', 'GueltigAb': 'object', 'GueltigBis': 'object', 'Einwohner': 'Int32'}
 CV_dtypes = {'Datenstand': 'object', 'IdBundesland': 'str', 'Bundesland': 'str', 'IdLandkreis': 'str',
              'Landkreis': 'str', 'NeuerFall': 'Int8', 'NeuerTodesfall': 'Int8', 'NeuGenesen': 'Int8',
@@ -40,9 +36,9 @@ LK['Meldedatum'] = pd.to_datetime(LK['Meldedatum']).dt.date
 datenstand = pd.to_datetime(LK['Datenstand'].iloc[0], format='%d.%m.%Y, %H:%M Uhr')
 LK['Datenstand'] = datenstand.date()
 LK['AnzahlFall'] = np.where(LK['NeuerFall'].isin([1, 0]), LK['AnzahlFall'], 0)
-LK['AnzahlTodesfall'] = np.where(LK['NeuerTodesfall'].isin([1, 0]), LK['AnzahlTodesfallall'], 0)
+LK['AnzahlTodesfall'] = np.where(LK['NeuerTodesfall'].isin([1, 0]), LK['AnzahlTodesfall'], 0)
 LK['AnzahlGenesen'] = np.where(LK['NeuGenesen'].isin([1, 0]), LK['AnzahlGenesen'], 0)
-LK.drop(['NeuGenesen', 'NeuerFall', 'NeuerTodesfall', 'Budesland', 'Landkreis'], inplace=True, axis=1)
+LK.drop(['NeuGenesen', 'NeuerFall', 'NeuerTodesfall', 'Bundesland', 'Landkreis'], inplace=True, axis=1)
 LK.rename(columns={'AnzahlGenesen': 'recovered', 'AnzahlFall': 'cases', 'AnzahlTodesfall': 'deaths'}, inplace=True)
 BL = LK.copy()
 LK.drop(['IdBundesland'], inplace=True, axis=1)
@@ -156,7 +152,7 @@ BL.to_json(BL_json_path, orient="records", date_format="iso", force_ascii=False)
 
 # %% fixed-incidence
 LK = data_Base.copy()
-path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'Fallzahlen', 'frozen-incidence')
+path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'dataStore', 'frozen-incidence')
 LK_json_path = os.path.join(path, 'FixFallzahlen_' + date_latest + '_LK.json')
 BL_json_path = os.path.join(path, 'FixFallzahlen_' + date_latest + '_BL.json')
 key_list_LK = ['IdLandkreis']

@@ -18,7 +18,7 @@ RUN apt-get update \
   && which cron \
   && rm -rf /etc/cron.*/* \
   && crontab crontab2.file \
-  && chmod 755 update.sh downloadDataDockerBuild.sh entrypoint.sh \
+  && chmod 755 update1.sh update2.sh downloadDataDockerBuild.sh entrypoint.sh \
   && ./downloadDataDockerBuild.sh \
   && apt-get -y purge binutils build-essential wget \
   && apt-get -y --purge autoremove \

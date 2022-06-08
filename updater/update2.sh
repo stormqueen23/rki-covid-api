@@ -27,6 +27,10 @@ lastModified=$(date -d "@$lastModified" '+%Y-%m-%d')
 if [[ "$DATE" != "$lastModified" ]]; then
   DATE2=$(date '+%Y-%m-%dT%H:%M:%SZ')
   echo "$DATE2: Updated data for $DATE does not yet exist (modified date: $lastModified)"
+  # remove crontab
+  crontab -r
+  # set new crontab to run update1.sh every 15 minutes
+  crontab crontab1.file
   exit 1
 fi
 
@@ -38,6 +42,16 @@ lastModifiedLocal=$(date -d "@$lastModifiedLocal" '+%Y-%m-%d')
 if [[ "$DATE" == "$lastModifiedLocal" ]]; then
   DATE2=$(date '+%Y-%m-%dT%H:%M:%SZ')
   echo "$DATE2: data is already updated for $DATE (local modified date: $lastModifiedLocal)"
+  # remove crontab
+  crontab -l
+  crontab -r
+  DATE2=$(date '+%Y-%m-%dT%H:%M:%SZ')
+  echo "$DATE2: crontab removed"
+  # set new crontab to run update1.sh every 15 minutes
+  DATE2=$(date '+%Y-%m-%dT%H:%M:%SZ')
+  echo "$DATE2: set crontab to crontab1.file"
+  crontab /usr/src/app/crontab1.file
+  cat /usr/src/app/crontab1.file
   exit 1
 fi
 
@@ -68,3 +82,15 @@ echo "$DATE2: Update finished"
 
 # update is done, delete /tmp/update.pid
 rm /tmp/update.pid
+
+# remove crontab
+crontab -l
+crontab -r
+DATE2=$(date '+%Y-%m-%dT%H:%M:%SZ')
+echo "$DATE2: crontab removed"
+
+# set new crontab to run update2.sh at 1 o'clock (GMT)
+crontab /usr/src/app/crontab2.file
+DATE2=$(date '+%Y-%m-%dT%H:%M:%SZ')
+echo "$DATE2: crontab set to crontab2.file"
+cat /usr/src/app/crontab2.file

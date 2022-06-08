@@ -3,351 +3,126 @@ import { ResponseData } from "./response-data";
 import {
   getDateBefore,
   RKIError,
-  parseDate,
-  getAlternateDataSource,
-  shouldUseAlternateDataSource,
+  requireUncached,
 } from "../utils";
 
 export async function getCases(): Promise<ResponseData<number>> {
-  const url = `https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/Covid19_hubv/FeatureServer/0/query?where=NeuerFall IN(1,0)&objectIds=&time=&resultType=standard&outFields=AnzahlFall,MeldeDatum,Datenstand&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnDistinctValues=false&cacheHint=false&groupByFieldsForStatistics=Datenstand&outStatistics=[{"statisticType":"sum","onStatisticField":"AnzahlFall","outStatisticFieldName":"cases"},{"statisticType":"max","onStatisticField":"MeldeDatum","outStatisticFieldName":"date"}]&having=&resultOffset=&resultRecordCount=&sqlFormat=none&f=json&token=`;
-  const response = await axios.get(url);
-  const data = response.data;
-  if (data.error) {
-    throw new RKIError(data.error, response.config.url);
-  }
-  let datenstand = parseDate(data.features[0].attributes.Datenstand);
-  if (shouldUseAlternateDataSource(datenstand)) {
-    const dataTemp = await getAlternateDataSource(url);
-    let cases = 0;
-    for (const feature of dataTemp.features) {
-      cases += feature.attributes.cases;
-    }
-    data.features[0].attributes.cases = cases;
-    data.features[0].attributes.Datenstand =
-      dataTemp.features[0].attributes.Datenstand;
-    datenstand = parseDate(dataTemp.features[0].attributes.Datenstand);
-  }
+  const data = requireUncached("../dataStore/accumulated/states.json");
+  const meta = requireUncached("../dataStore/meta/meta.json");
   return {
-    data: data.features[0].attributes.cases,
-    lastUpdate: datenstand,
+    data: data[0].cases,
+    lastUpdate: new Date(meta.modified),
   };
 }
 
 export async function getNewCases(): Promise<ResponseData<number>> {
-  const url = `https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/Covid19_hubv/FeatureServer/0/query?where=NeuerFall IN(1,-1)&objectIds=&time=&resultType=standard&outFields=AnzahlFall,MeldeDatum,Datenstand&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnDistinctValues=false&cacheHint=false&groupByFieldsForStatistics=Datenstand&outStatistics=[{"statisticType":"sum","onStatisticField":"AnzahlFall","outStatisticFieldName":"cases"},{"statisticType":"max","onStatisticField":"MeldeDatum","outStatisticFieldName":"date"}]&having=&resultOffset=&resultRecordCount=&sqlFormat=none&f=json&token=`;
-  const response = await axios.get(url);
-  const data = response.data;
-  if (data.error) {
-    throw new RKIError(data.error, response.config.url);
-  }
-  let datenstand = parseDate(data.features[0].attributes.Datenstand);
-  if (shouldUseAlternateDataSource(datenstand)) {
-    const dataTemp = await getAlternateDataSource(url);
-    let cases = 0;
-    for (const feature of dataTemp.features) {
-      cases += feature.attributes.cases;
-    }
-    data.features[0].attributes.cases = cases;
-    data.features[0].attributes.Datenstand =
-      dataTemp.features[0].attributes.Datenstand;
-    datenstand = parseDate(dataTemp.features[0].attributes.Datenstand);
-  }
+  const data = requireUncached("../dataStore/new/states.json");
+  const meta = requireUncached("../dataStore/meta/meta.json");
   return {
-    data: data.features[0].attributes.cases,
-    lastUpdate: datenstand,
+    data: data[0].cases,
+    lastUpdate: new Date (meta.modified),
   };
 }
 
 export async function getLastCasesHistory(
   days?: number
 ): Promise<{ history: { cases: number; date: Date }[]; lastUpdate: Date }> {
-  const whereParams = ["NeuerFall IN(1,0)"];
+  const data = requireUncached("../dataStore/history/states.json");
+  const meta = requireUncached("../dataStore/meta/meta.json");
+  let history = data.map((state) => {
+    return {
+      cases: state.cases,
+      date: new Date(state.date),
+    };
+  });
+  history = history.filter((state) => state.id == 0);
   if (days) {
-    const dateString = getDateBefore(days);
-    whereParams.push(`MeldeDatum >= TIMESTAMP '${dateString}'`);
-  }
-  const url = `https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/Covid19_hubv/FeatureServer/0/query?where=${whereParams.join(
-    " AND "
-  )}&objectIds=&time=&resultType=standard&outFields=AnzahlFall,MeldeDatum,Datenstand&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnDistinctValues=false&cacheHint=false&orderByFields=MeldeDatum&groupByFieldsForStatistics=MeldeDatum,Datenstand&outStatistics=[{"statisticType":"sum","onStatisticField":"AnzahlFall","outStatisticFieldName":"cases"},{"statisticType":"max","onStatisticField":"MeldeDatum","outStatisticFieldName":"date"}]&having=&resultOffset=&resultRecordCount=&sqlFormat=none&f=json&token=`;
-
-  const response = await axios.get(url);
-  let data = response.data;
-  if (data.error) {
-    throw new RKIError(data.error, response.config.url);
-  }
-  let datenstand = parseDate(data.features[0].attributes.Datenstand);
-  if (shouldUseAlternateDataSource(datenstand)) {
-    const dataTemp = await getAlternateDataSource(url);
-    // dataTemp must be aggregated and summed
-    data.features = [];
-    dataTemp.features.reduce(function (res, feature) {
-      if (!res[feature.attributes.date]) {
-        res[feature.attributes.date] = {
-          attributes: {
-            date: feature.attributes.date,
-            cases: 0,
-            Datenstand: feature.attributes.Datenstand,
-          },
-        };
-        data.features.push(res[feature.attributes.date]);
-      }
-      res[feature.attributes.date].attributes.cases += feature.attributes.cases;
-      return res;
-    }, {});
-    datenstand = parseDate(dataTemp.features[0].attributes.Datenstand);
-  }
-  const history = data.features
-    .map((feature) => {
-      return {
-        cases: feature.attributes.cases,
-        date: new Date(feature.attributes.date),
-      };
-    })
-    .sort((a, b) => {
-      const dateA = a.date;
-      const dateB = b.date;
-      return dateA.getTime() - dateB.getTime();
-    });
+    const reference_date = new Date(getDateBefore(days));
+    history = history.filter((dates) => dates.date >= reference_date);
+  }  
   return {
     history: history,
-    lastUpdate: datenstand,
+    lastUpdate: new Date(meta.modified),
   };
 }
 
 export async function getLastDeathsHistory(
   days?: number
 ): Promise<{ history: { deaths: number; date: Date }[]; lastUpdate: Date }> {
-  const whereParams = ["NeuerTodesfall IN(1,0,-9)"];
+  const data = requireUncached("../dataStore/history/states.json");
+  const meta = requireUncached("../dataStore/meta/meta.json");
+  let history = data.map((state) => {
+    return {
+      deaths: state.deaths,
+      date: new Date(state.date),
+    };
+  });
+  history = history.filter((state) => state.id == 0);
   if (days) {
-    const dateString = getDateBefore(days);
-    whereParams.push(`MeldeDatum >= TIMESTAMP '${dateString}'`);
+    const reference_date = new Date(getDateBefore(days));
+    history = history.filter((dates) => dates.date >= reference_date);
   }
-  const url = `https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/Covid19_hubv/FeatureServer/0/query?where=${whereParams.join(
-    " AND "
-  )}&objectIds=&time=&resultType=standard&outFields=AnzahlTodesfall,MeldeDatum,Datenstand&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnDistinctValues=false&cacheHint=false&orderByFields=MeldeDatum&groupByFieldsForStatistics=MeldeDatum,Datenstand&outStatistics=[{"statisticType":"sum","onStatisticField":"AnzahlTodesfall","outStatisticFieldName":"deaths"},{"statisticType":"max","onStatisticField":"MeldeDatum","outStatisticFieldName":"date"}]&having=&resultOffset=&resultRecordCount=&sqlFormat=none&f=json&token=`;
-
-  const response = await axios.get(url);
-  const data = response.data;
-  if (data.error) {
-    throw new RKIError(data.error, response.config.url);
-  }
-  let datenstand = parseDate(data.features[0].attributes.Datenstand);
-  if (shouldUseAlternateDataSource(datenstand)) {
-    const dataTemp = await getAlternateDataSource(url);
-    // dataTemp must be aggregated and summed
-    data.features = [];
-    dataTemp.features.reduce(function (res, feature) {
-      if (!res[feature.attributes.date]) {
-        res[feature.attributes.date] = {
-          attributes: {
-            date: feature.attributes.date,
-            deaths: 0,
-            Datenstand: feature.attributes.Datenstand,
-          },
-        };
-        data.features.push(res[feature.attributes.date]);
-      }
-      res[feature.attributes.date].attributes.deaths +=
-        feature.attributes.deaths;
-      return res;
-    }, {});
-    datenstand = parseDate(dataTemp.features[0].attributes.Datenstand);
-  }
-  const history = data.features
-    .map((feature) => {
-      return {
-        deaths: feature.attributes.deaths,
-        date: new Date(feature.attributes.date),
-      };
-    })
-    .sort((a, b) => {
-      const dateA = a.date;
-      const dateB = b.date;
-      return dateA.getTime() - dateB.getTime();
-    });
   return {
     history: history,
-    lastUpdate: datenstand,
+    lastUpdate: new Date(meta.modified),
   };
 }
 
 export async function getLastRecoveredHistory(
   days?: number
 ): Promise<{ history: { recovered: number; date: Date }[]; lastUpdate: Date }> {
-  const whereParams = ["NeuGenesen IN(1,0,-9)"];
+  const data = requireUncached("../dataStore/history/states.json");
+  const meta = requireUncached("../dataStore/meta/meta.json");
+  let history = data.map((state) => {
+    return {
+      recovered: state.recovered,
+      date: new Date(state.date),
+    };
+  });
+  history = history.filter((state) => state.id == 0);
   if (days) {
-    const dateString = getDateBefore(days);
-    whereParams.push(`MeldeDatum >= TIMESTAMP '${dateString}'`);
+    const reference_date = new Date(getDateBefore(days));
+    history = history.filter((dates) => dates.date >= reference_date);
   }
-  const url = `https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/Covid19_hubv/FeatureServer/0/query?where=${whereParams.join(
-    " AND "
-  )}&objectIds=&time=&resultType=standard&outFields=AnzahlGenesen,MeldeDatum,Datenstand&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnDistinctValues=false&cacheHint=false&orderByFields=MeldeDatum&groupByFieldsForStatistics=MeldeDatum,Datenstand&outStatistics=[{"statisticType":"sum","onStatisticField":"AnzahlGenesen","outStatisticFieldName":"recovered"},{"statisticType":"max","onStatisticField":"MeldeDatum","outStatisticFieldName":"date"}]&having=&resultOffset=&resultRecordCount=&sqlFormat=none&f=json&token=`;
-
-  const response = await axios.get(url);
-  const data = response.data;
-  if (data.error) {
-    throw new RKIError(data.error, response.config.url);
-  }
-  let datenstand = parseDate(data.features[0].attributes.Datenstand);
-  if (shouldUseAlternateDataSource(datenstand)) {
-    const dataTemp = await getAlternateDataSource(url);
-    // dataTemp must be aggregated and summed
-    data.features = [];
-    dataTemp.features.reduce(function (res, feature) {
-      if (!res[feature.attributes.date]) {
-        res[feature.attributes.date] = {
-          attributes: {
-            date: feature.attributes.date,
-            recovered: 0,
-            Datenstand: feature.attributes.Datenstand,
-          },
-        };
-        data.features.push(res[feature.attributes.date]);
-      }
-      res[feature.attributes.date].attributes.recovered +=
-        feature.attributes.recovered;
-      return res;
-    }, {});
-    datenstand = parseDate(dataTemp.features[0].attributes.Datenstand);
-  }
-  const history = data.features
-    .map((feature) => {
-      return {
-        recovered: feature.attributes.recovered,
-        date: new Date(feature.attributes.date),
-      };
-    })
-    .sort((a, b) => {
-      const dateA = a.date;
-      const dateB = b.date;
-      return dateA.getTime() - dateB.getTime();
-    });
   return {
     history: history,
-    lastUpdate: datenstand,
+    lastUpdate: new Date(meta.modified),
   };
 }
 
 export async function getDeaths(): Promise<ResponseData<number>> {
-  const url = `https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/Covid19_hubv/FeatureServer/0/query?where=NeuerTodesfall IN(1,0)&objectIds=&time=&resultType=standard&outFields=AnzahlTodesfall,MeldeDatum,Datenstand&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnDistinctValues=false&cacheHint=false&groupByFieldsForStatistics=Datenstand&outStatistics=[{"statisticType":"sum","onStatisticField":"AnzahlTodesfall","outStatisticFieldName":"deaths"},{"statisticType":"max","onStatisticField":"MeldeDatum","outStatisticFieldName":"date"}]&having=&resultOffset=&resultRecordCount=&sqlFormat=none&f=json&token=`;
-  const response = await axios.get(url);
-  const data = response.data;
-  if (data.error) {
-    throw new RKIError(data.error, response.config.url);
-  }
-  let datenstand = parseDate(data.features[0].attributes.Datenstand);
-  if (shouldUseAlternateDataSource(datenstand)) {
-    const dataTemp = await getAlternateDataSource(url);
-    let deaths = 0;
-    for (const feature of dataTemp.features) {
-      deaths += feature.attributes.deaths;
-    }
-    data.features[0].attributes.deaths = deaths;
-    data.features[0].attributes.Datenstand =
-      dataTemp.features[0].attributes.Datenstand;
-    datenstand = parseDate(dataTemp.features[0].attributes.Datenstand);
-  }
+  const data = requireUncached("../dataStore/accumulated/states.json");
+  const meta = requireUncached("../dataStore/meta/meta.json");
   return {
-    data: data.features[0].attributes.deaths,
-    lastUpdate: datenstand,
+    data: data[0].deaths,
+    lastUpdate: new Date(meta.modified),
   };
 }
 
 export async function getNewDeaths(): Promise<ResponseData<number>> {
-  const url = `https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/Covid19_hubv/FeatureServer/0/query?where=NeuerTodesfall IN(1,-1)&objectIds=&time=&resultType=standard&outFields=AnzahlTodesfall,MeldeDatum,Datenstand&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnDistinctValues=false&cacheHint=false&groupByFieldsForStatistics=Datenstand&outStatistics=[{"statisticType":"sum","onStatisticField":"AnzahlTodesfall","outStatisticFieldName":"deaths"},{"statisticType":"max","onStatisticField":"MeldeDatum","outStatisticFieldName":"date"}]&having=&resultOffset=&resultRecordCount=&sqlFormat=none&f=json&token=`;
-  const response = await axios.get(url);
-  const data = response.data;
-  if (data.error) {
-    throw new RKIError(data.error, response.config.url);
-  }
-  // check if there is a result
-  if (data.features.length == 0) {
-    // This meens there are no new deaths in germany!
-    // if not, we need the field "Datenstand" from the rki Data Base so
-    // lets request the total deaths (there is always a result!)
-    // and "build" a result with "total deaths Datenstand" and "new deaths = 0"
-    const url2 = `https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/Covid19_hubv/FeatureServer/0/query?where=NeuerTodesfall IN(1,0)&objectIds=&time=&resultType=standard&outFields=AnzahlTodesfall,MeldeDatum,Datenstand&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnDistinctValues=false&cacheHint=false&groupByFieldsForStatistics=Datenstand&outStatistics=[{"statisticType":"sum","onStatisticField":"AnzahlTodesfall","outStatisticFieldName":"deaths"},{"statisticType":"max","onStatisticField":"MeldeDatum","outStatisticFieldName":"date"}]&having=&resultOffset=&resultRecordCount=&sqlFormat=none&f=json&token=`;
-    const response2 = await axios.get(url2);
-    const data2 = response2.data;
-    if (data2.error) {
-      throw new RKIError(data2.error, response2.config.url);
-    }
-    data.features[0] = {
-      attributes: {
-        deaths: 0,
-        Datenstand: data2.features[0].attributes.Datenstand,
-      },
-    };
-  }
-  let datenstand = parseDate(data.features[0].attributes.Datenstand);
-  if (shouldUseAlternateDataSource(datenstand)) {
-    const dataTemp = await getAlternateDataSource(url);
-    let deaths = 0;
-    for (const feature of dataTemp.features) {
-      if (feature.attributes.length > 0) {
-        deaths += feature.attributes.deaths;
-      }
-    }
-    data.features[0].attributes.deaths = deaths;
-    if (dataTemp.features.length > 0) {
-      data.features[0].attributes.Datenstand =
-        dataTemp.features[0].attributes.Datenstand;
-      datenstand = parseDate(dataTemp.features[0].attributes.Datenstand);
-    }
-  }
+  const data = requireUncached("../dataStore/new/states.json");
+  const meta = requireUncached("../dataStore/meta/meta.json");
   return {
-    data: data.features[0].attributes.deaths,
-    lastUpdate: datenstand,
+    data: data[0].deaths,
+    lastUpdate: new Date(meta.modified),
   };
 }
 
 export async function getRecovered(): Promise<ResponseData<number>> {
-  const url = `https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/Covid19_hubv/FeatureServer/0/query?where=NeuGenesen IN(1,0)&objectIds=&time=&resultType=standard&outFields=AnzahlGenesen,MeldeDatum,Datenstand&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnDistinctValues=false&cacheHint=false&groupByFieldsForStatistics=Datenstand&outStatistics=[{"statisticType":"sum","onStatisticField":"AnzahlGenesen","outStatisticFieldName":"recovered"},{"statisticType":"max","onStatisticField":"MeldeDatum","outStatisticFieldName":"date"}]&having=&resultOffset=&resultRecordCount=&sqlFormat=none&f=json&token=`;
-  const response = await axios.get(url);
-  const data = response.data;
-  if (data.error) {
-    throw new RKIError(data.error, response.config.url);
-  }
-  let datenstand = parseDate(data.features[0].attributes.Datenstand);
-  if (shouldUseAlternateDataSource(datenstand)) {
-    const dataTemp = await getAlternateDataSource(url);
-    let recovered = 0;
-    for (const feature of dataTemp.features) {
-      recovered += feature.attributes.recovered;
-    }
-    data.features[0].attributes.recovered = recovered;
-    data.features[0].attributes.Datenstand =
-      dataTemp.features[0].attributes.Datenstand;
-    datenstand = parseDate(dataTemp.features[0].attributes.Datenstand);
-  }
+  const data = requireUncached("../dataStore/recoveredData/states.json");
+  const meta = requireUncached("../dataStore/meta/meta.json");
   return {
-    data: data.features[0].attributes.recovered,
-    lastUpdate: datenstand,
+    data: data[0].recovered,
+    lastUpdate: new Date(meta.modified),
   };
 }
 
 export async function getNewRecovered(): Promise<ResponseData<number>> {
-  const url = `https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/Covid19_hubv/FeatureServer/0/query?where=NeuGenesen IN(1,-1)&objectIds=&time=&resultType=standard&outFields=AnzahlGenesen,MeldeDatumDatenstand&returnIdsOnly=false&returnUniqueIdsOnly=false&returnCountOnly=false&returnDistinctValues=false&cacheHint=false&groupByFieldsForStatistics=Datenstand&outStatistics=[{"statisticType":"sum","onStatisticField":"AnzahlGenesen","outStatisticFieldName":"recovered"},{"statisticType":"max","onStatisticField":"MeldeDatum","outStatisticFieldName":"date"}]&having=&resultOffset=&resultRecordCount=&sqlFormat=none&f=json&token=`;
-  const response = await axios.get(url);
-  const data = response.data;
-  if (data.error) {
-    throw new RKIError(data.error, response.config.url);
-  }
-  let datenstand = parseDate(data.features[0].attributes.Datenstand);
-  if (shouldUseAlternateDataSource(datenstand)) {
-    const dataTemp = await getAlternateDataSource(url);
-    let recovered = 0;
-    for (const feature of dataTemp.features) {
-      recovered += feature.attributes.recovered;
-    }
-    data.features[0].attributes.recovered = recovered;
-    data.features[0].attributes.Datenstand =
-      dataTemp.features[0].attributes.Datenstand;
-    datenstand = parseDate(dataTemp.features[0].attributes.Datenstand);
-  }
+  const data = requireUncached("../dataStore/new/states.json");
+  const meta = requireUncached("../dataStore/meta/meta.json");
   return {
-    data: data.features[0].attributes.recovered,
-    lastUpdate: datenstand,
+    data: data[0].recovered,
+    lastUpdate: new Date(meta.modified),
   };
 }
 

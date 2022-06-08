@@ -7,6 +7,7 @@ import {
   getStateAbbreviationByName,
   getStateIdByName,
   RKIError,
+  requireUncached,
 } from "../utils";
 import { ResponseData } from "./response-data";
 
@@ -22,11 +23,6 @@ function getDateFromString(dateString: string): Date {
     const date_pattern = /(\d{2})\.(\d{2})\.(\d{4})/;
     return new Date(dateString.replace(date_pattern, "$3-$2-$1"));
   }
-}
-
-function requireUncached(module: string) {
-  delete require.cache[require.resolve(module)];
-  return require(module);
 }
 
 export interface DistrictsFrozenIncidenceData {
@@ -136,11 +132,11 @@ export async function getDistrictsFrozenIncidenceHistory(
       ? lastUpdate000
       : districts[0].history[districts[0].history.length - 1].date;
   const today: Date = new Date(new Date().setHours(0, 0, 0));
-  // get lastUpdate from metaData
+  // get lastUpdate from local stored metaData
   const meta = requireUncached("../../Fallzahlen/RKI_COVID19_meta.json");
   const lastFileDate = new Date(meta.modified);
-  // if lastDate < today and lastDate <= lastFileDate get the missing dates from github
-  // the gihub data is updated by github actions daily, triggert at ~ 1:58 GMT, running ?
+  // if lastDate < today and lastDate <= lastFileDate get the missing dates from local stored json files
+  // the json files are updated daily by container cronjob as soon as the new data is availible
   if (
     lastDate.getTime() < today.getTime() &&
     lastDate.getTime() <= lastFileDate.getTime()
@@ -319,10 +315,11 @@ export async function getStatesFrozenIncidenceHistory(
       ? lastUpdate000
       : states[0].history[states[0].history.length - 1].date;
   const today = new Date(new Date().setHours(0, 0, 0));
-  // get lastUpdate from metaData
+  // get lastUpdate from local stored metaData
   const meta = requireUncached("../../Fallzahlen/RKI_COVID19_meta.json");
   const lastFileDate = new Date(meta.modified);
-  // if lastDate < today and lastDate <= lastFileDate try to get the missing dates from github
+  // if lastDate < today and lastDate <= lastFileDate get the missing dates from local stored json files
+  // the json files are updated daily by container cronjob as soon as the new data is availible
   if (
     lastDate.getTime() < today.getTime() &&
     lastDate.getTime() <= lastFileDate.getTime()
@@ -333,7 +330,8 @@ export async function getStatesFrozenIncidenceHistory(
       getDayDifference(lastFileDate, lastDate) - 1
     );
     // add the missing date(s) to states
-    const basename = "../../Fallzahlen/FixFallzahlen_XXXX-XX-XX_BL.json";
+    const basename =
+      "../../Fallzahlen/frozen-incidence/FixFallzahlen_XXXX-XX-XX_BL.json";
     const startDay = days
       ? days <= maxNumberOfDays
         ? maxNumberOfDays - days + 1

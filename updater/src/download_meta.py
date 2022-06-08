@@ -4,7 +4,7 @@ import json
 
 # %% each day
 try:
-    meta_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'Fallzahlen')
+    meta_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'Fallzahlen', 'meta')
     filename_meta = "RKI_COVID19_meta.json" 
     url_meta = "https://www.arcgis.com/sharing/rest/content/items/f10774f1c63e40168479a1feb6c7ca74?f=json"
 

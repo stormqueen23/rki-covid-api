@@ -19,29 +19,29 @@ maxDate=$(date -I -d "$maxDate + 1 day")
 # set startDate to lastMonday
 startDate=$lastMonday
 while [[ "$startDate" != "$maxDate" ]]; do
-  # get BL and LK JSON files for the date, store it in ./Fallzahlen/, print message
-  wget -q "$SOURCE/Fallzahlen/FixFallzahlen_"$startDate"_BL.json" -O "./Fallzahlen/FixFallzahlen_"$startDate"_BL.json"
+  # get BL and LK JSON files for the date, store it in ./Fallzahlen/frozen-incidence, print message
+  wget -q "$SOURCE/Fallzahlen/FixFallzahlen_"$startDate"_BL.json" -O "./Fallzahlen/frozen-incidence/FixFallzahlen_"$startDate"_BL.json"
   if [ $? -ne 0 ]; then
     echo "unable to get ./Fallzahlen/FixFallzahlen_"$startDate"_BL.json, try again later and rebuild the docker image!"
     exit 1
   else 
-    echo "./Fallzahlen/FixFallzahlen_"$startDate"_BL.json saved"
+    echo "./Fallzahlen/frozen-incidence/FixFallzahlen_"$startDate"_BL.json saved"
   fi
-  wget -q "$SOURCE/Fallzahlen/FixFallzahlen_"$startDate"_LK.json" -O "./Fallzahlen/FixFallzahlen_"$startDate"_LK.json"
+  wget -q "$SOURCE/Fallzahlen/FixFallzahlen_"$startDate"_LK.json" -O "./Fallzahlen/frozen-incidence/FixFallzahlen_"$startDate"_LK.json"
   if [ $? -ne 0 ]; then
     echo "unable to get ./Fallzahlen/FixFallzahlen_"$startDate"_LK.json, try again later and rebuild the docker image!"
     exit 1
   else 
-    echo "./Fallzahlen/FixFallzahlen_"$startDate"_LK.json saved"
+    echo "./Fallzahlen/frozen-incidence/FixFallzahlen_"$startDate"_LK.json saved"
   fi
   # increase startDate by 1 day
   startDate=$(date -I -d "$startDate + 1 day")
 done
 # finaly get meta data as well, stored in ./Fallzahlen/
-wget -q "$URL_METADATA" -O "./Fallzahlen/RKI_COVID19_meta.json"
+wget -q "$URL_METADATA" -O "./Fallzahlen/meta/RKI_COVID19_meta.json"
 if [ $? -ne 0 ]; then
   echo "unable to get ./Fallzahlen/RKI_COVID19_meta.json, try again later and rebuild the docker image!"
   exit 1
 else 
-  echo "./Fallzahlen/RKI_COVID19_meta.json saved"
+  echo "./Fallzahlen/meta/RKI_COVID19_meta.json saved"
 fi

@@ -15,20 +15,20 @@ services:
     ports:
       - "8080:3000"
     depends_on:
-      - fix-incidence
+      - updater
       - redis
     environment:
       - REDISHOST=redis
     networks:
       - redis-net
     volumes:
-      - Fallzahlen:/usr/src/app/Fallzahlen:ro
-  fix-incidence:
-    container_name: cronjob
+      - dataStore:/usr/src/app/dataStore:ro
+  updater:
+    container_name: updater
     build:
-      context: ./cronjob/
+      context: ./updater/
       dockerfile: ./Dockerfile
     volumes:
-      - Fallzahlen:/usr/src/app/Fallzahlen
+      - dataStore:/usr/src/app/dataStore
 volumes:
-  Fallzahlen:
+  dataStore:

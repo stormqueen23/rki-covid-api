@@ -8,3 +8,8 @@ dist
 __pycache__/
 *.py[cod]
 *$py.class
+dataStore/meta/*.json
+dataStore/new/*.json
+dataStore/history/*.json
+dataStore/frozen-incidence/*.json
+dataStore/accumulated/*.json

@@ -17,7 +17,7 @@ RUN apt-get update \
   && pip install --no-cache-dir -r requirements.txt \
   && which cron \
   && rm -rf /etc/cron.*/* \
-  && crontab crontab.file \
+  && crontab crontab2.file \
   && chmod 755 update.sh downloadDataDockerBuild.sh entrypoint.sh \
   && ./downloadDataDockerBuild.sh \
   && apt-get -y purge binutils build-essential wget \
@@ -25,7 +25,7 @@ RUN apt-get update \
   && apt-get clean \
   && apt-get autoclean
 
-VOLUME [ "/usr/src/app/Fallzahlen" ]
+VOLUME [ "/usr/src/app/dataStore" ]
 
 ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
 CMD ["cron","-f", "-L", "15"]

@@ -4,3 +4,9 @@ dist/
 # minified svg files:
 src/maps/districts.json
 src/maps/states.json
+
+Fallzahlen/meta/*.json
+Fallzahlen/new/*.json
+Fallzahlen/history/*.json
+Fallzahlen/frozen-incidence/*.json
+Fallzahlen/recoveredData/*.json

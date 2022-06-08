@@ -35,7 +35,7 @@ if [[ "$DATE" != "$lastModified" ]]; then
 fi
 
 #get last modified date from local meta file
-lastModifiedLocal=$(cat ../Fallzahlen/RKI_COVID19_meta.json 2>&1 | sed -E 's/.*"modified": ([0-9]+)000.*/\1/')
+lastModifiedLocal=$(cat ../dataStore/meta.json 2>&1 | sed -E 's/.*"modified": ([0-9]+)000.*/\1/')
 lastModifiedLocal=$(date -d "@$lastModifiedLocal" '+%Y-%m-%d')
 
 # if todays date equal to local last modified date, then the update is allready done, print message and exit

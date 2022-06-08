@@ -161,7 +161,7 @@ export async function StatesCasesHistoryResponse(
   const id = abbreviation ? getStateIdByAbbreviation(abbreviation) : null;
 
   const statesHistoryData = await getLastStateCasesHistory(days, id);
-
+  statesHistoryData.data = statesHistoryData.data.filter((state) => state.id !=0);
   const lastUpdate0000 = new Date(
     new Date(statesHistoryData.lastUpdate).setHours(0, 0, 0, 0)
   );
@@ -265,6 +265,7 @@ export async function StatesDeathsHistoryResponse(
   const id = abbreviation ? getStateIdByAbbreviation(abbreviation) : null;
 
   const statesHistoryData = await getLastStateDeathsHistory(days, id);
+  statesHistoryData.data = statesHistoryData.data.filter((state) => state.id !=0);
   const lastUpdate0000 = new Date(
     new Date(statesHistoryData.lastUpdate).setHours(0, 0, 0, 0)
   );
@@ -303,6 +304,7 @@ export async function StatesRecoveredHistoryResponse(
   const id = abbreviation ? getStateIdByAbbreviation(abbreviation) : null;
 
   const statesHistoryData = await getLastStateRecoveredHistory(days, id);
+  statesHistoryData.data = statesHistoryData.data.filter((state) => state.id !=0);
   const lastUpdate0000 = new Date(
     new Date(statesHistoryData.lastUpdate).setHours(0, 0, 0, 0)
   );

@@ -128,9 +128,7 @@ export async function getLastStateCasesHistory(
     name: string;
     cases: number;
     date: Date;
-  }[] = data
-  .filter((state) => state.id != 0)
-  .map((state) => {
+  }[] = data.map((state) => {
     return {
       id: parseInt(state.IdBundesland),
       name: state.Bundesland,
@@ -164,9 +162,7 @@ export async function getLastStateDeathsHistory(
     name: string;
     deaths: number;
     date: Date;
-  }[] = data
-  .filter((state) => state.id != 0)
-  .map((state) => {
+  }[] = data.map((state) => {
     return {
       id: parseInt(state.IdBundesland),
       name: state.Bundesland,
@@ -200,9 +196,7 @@ export async function getLastStateRecoveredHistory(
     name: string;
     recovered: number;
     date: Date;
-  }[] = data
-  .filter((state) => state.id != 0)
-  .map((state) => {
+  }[] = data.map((state) => {
     return {
       id: parseInt(state.IdBundesland),
       name: state.Bundesland,
@@ -212,10 +206,10 @@ export async function getLastStateRecoveredHistory(
   });
   if (days) {
     const reference_date = new Date(getDateBefore(days));
-    history = history.filter((element) => element.date >= reference_date);
+    history = history.filter((dates) => dates.date >= reference_date);
   }
   if (id) {
-    history = history.filter((element) => element.id === id);
+    history = history.filter((state) => state.id === id);
   }
   return {
     data: history,

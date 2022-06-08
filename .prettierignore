@@ -5,13 +5,13 @@ dist/
 src/maps/districts.json
 src/maps/states.json
 
-Fallzahlen/meta/*.json
-Fallzahlen/new/*.json
-Fallzahlen/history/*.json
-Fallzahlen/frozen-incidence/*.json
-Fallzahlen/recoveredData/*.json
-updater/Fallzahlen/meta/*.json
-updater/Fallzahlen/new/*.json
-updater/Fallzahlen/history/*.json
-updater/Fallzahlen/frozen-incidence/*.json
-updater/Fallzahlen/recoveredData/*.json
+dataStore/meta/*.json
+dataStore/new/*.json
+dataStore/history/*.json
+dataStore/frozen-incidence/*.json
+dataStore/recoveredData/*.json
+updater/dataStore/meta/*.json
+updater/dataStore/new/*.json
+updater/dataStore/history/*.json
+updater/dataStore/frozen-incidence/*.json
+updater/dataStore/recoveredData/*.json

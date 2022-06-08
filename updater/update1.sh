@@ -38,6 +38,17 @@ lastModifiedLocal=$(date -d "@$lastModifiedLocal" '+%Y-%m-%d')
 if [[ "$DATE" == "$lastModifiedLocal" ]]; then
   DATE2=$(date '+%Y-%m-%dT%H:%M:%SZ')
   echo "$DATE2: data is already updated for $DATE (local modified date: $lastModifiedLocal)"
+  # remove crontab
+  crontab -l
+  crontab -r
+  DATE2=$(date '+%Y-%m-%dT%H:%M:%SZ')
+  echo "$DATE2: crontab removed"
+
+  # set new crontab to run update2.sh at 1 o'clock (GMT)
+  crontab /usr/src/app/crontab2.file
+  DATE2=$(date '+%Y-%m-%dT%H:%M:%SZ')
+  echo "$DATE2: crontab set to crontab2.file"
+  cat /usr/src/app/crontab2.file
   exit 1
 fi
 

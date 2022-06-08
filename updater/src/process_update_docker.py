@@ -50,19 +50,20 @@ agg_key = {
     for c in LK.columns
     if c not in key_list_LK
 }
-LK = LK.groupby(key_list_LK, as_index=True).agg(agg_key)
+LK = LK.groupby(key_list_LK, as_index=False).agg(agg_key)
 agg_key = {
     c: 'max' if c in ['Meldedatum', 'Datenstand'] else 'sum'
     for c in BL.columns
     if c not in key_list_BL
 }
-BL = BL.groupby(key_list_BL, as_index=True).agg(agg_key)
-ID0 = ID0.groupby(key_list_BL, as_index=True).agg(agg_key)
+BL = BL.groupby(key_list_BL, as_index=False).agg(agg_key)
+ID0 = ID0.groupby(key_list_BL, as_index=False).agg(agg_key)
 BL = pd.concat([ID0, BL])
+BL.reset_index(inplace=True, drop=True)
 
 # %% store json files
-LK.to_json(LK_json_path, orient="index", date_format="iso", force_ascii=False)
-BL.to_json(BL_json_path, orient="index", date_format="iso", force_ascii=False)
+LK.to_json(LK_json_path, orient="records", date_format="iso", force_ascii=False)
+BL.to_json(BL_json_path, orient="records", date_format="iso", force_ascii=False)
 
 # %% New
 # DistrictsCases, DistrictsDeaths, DistrictsRecovered
@@ -92,19 +93,20 @@ agg_key = {
     for c in LK.columns
     if c not in key_list_LK
 }
-LK = LK.groupby(key_list_LK, as_index=True).agg(agg_key)
+LK = LK.groupby(key_list_LK, as_index=False).agg(agg_key)
 agg_key = {
     c: 'max' if c in ['Meldedatum', 'Datenstand'] else 'sum'
     for c in BL.columns
     if c not in key_list_BL
 }
-BL = BL.groupby(key_list_BL, as_index=True).agg(agg_key)
-ID0 = ID0.groupby(key_list_BL, as_index=True).agg(agg_key)
+BL = BL.groupby(key_list_BL, as_index=False).agg(agg_key)
+ID0 = ID0.groupby(key_list_BL, as_index=False).agg(agg_key)
 BL = pd.concat([ID0, BL])
+BL.reset_index(inplace=True, drop=True)
 
 # %% store json files
-LK.to_json(LK_json_path, orient="index", date_format="iso", force_ascii=False)
-BL.to_json(BL_json_path, orient="index", date_format="iso", force_ascii=False)
+LK.to_json(LK_json_path, orient="records", date_format="iso", force_ascii=False)
+BL.to_json(BL_json_path, orient="records", date_format="iso", force_ascii=False)
 
 # %% History
 # DistrictCasesHistory, DistrictDeathsHistory, DistrictRecoveredHistory

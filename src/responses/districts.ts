@@ -17,7 +17,6 @@ import {
   fill0CasesDays,
   RequestType,
   RegionType,
-  getDateBefore,
 } from "../utils";
 import {
   DistrictsFrozenIncidenceData,

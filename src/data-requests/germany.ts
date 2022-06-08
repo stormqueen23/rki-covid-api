@@ -29,13 +29,14 @@ export async function getLastCasesHistory(
 ): Promise<{ history: { cases: number; date: Date }[]; lastUpdate: Date }> {
   const data = requireUncached("../dataStore/history/states.json");
   const meta = requireUncached("../dataStore/meta/meta.json");
-  let history = data.map((state) => {
+  let history = data
+  .filter((state) => state.IdBundesland == "00")
+  .map((state) => {
     return {
       cases: state.cases,
-      date: new Date(state.date),
+      date: new Date(state.Meldedatum),
     };
   });
-  history = history.filter((state) => state.id == 0);
   if (days) {
     const reference_date = new Date(getDateBefore(days));
     history = history.filter((dates) => dates.date >= reference_date);
@@ -51,13 +52,14 @@ export async function getLastDeathsHistory(
 ): Promise<{ history: { deaths: number; date: Date }[]; lastUpdate: Date }> {
   const data = requireUncached("../dataStore/history/states.json");
   const meta = requireUncached("../dataStore/meta/meta.json");
-  let history = data.map((state) => {
+  let history = data
+  .filter((state) => state.IdBundesland == "00")
+  .map((state) => {
     return {
       deaths: state.deaths,
-      date: new Date(state.date),
+      date: new Date(state.Meldedatum),
     };
   });
-  history = history.filter((state) => state.id == 0);
   if (days) {
     const reference_date = new Date(getDateBefore(days));
     history = history.filter((dates) => dates.date >= reference_date);
@@ -73,13 +75,14 @@ export async function getLastRecoveredHistory(
 ): Promise<{ history: { recovered: number; date: Date }[]; lastUpdate: Date }> {
   const data = requireUncached("../dataStore/history/states.json");
   const meta = requireUncached("../dataStore/meta/meta.json");
-  let history = data.map((state) => {
+  let history = data
+  .filter((state) => state.IdBundesland == "00")
+  .map((state) => {
     return {
       recovered: state.recovered,
-      date: new Date(state.date),
+      date: new Date(state.Meldedatum),
     };
   });
-  history = history.filter((state) => state.id == 0);
   if (days) {
     const reference_date = new Date(getDateBefore(days));
     history = history.filter((dates) => dates.date >= reference_date);
@@ -109,7 +112,7 @@ export async function getNewDeaths(): Promise<ResponseData<number>> {
 }
 
 export async function getRecovered(): Promise<ResponseData<number>> {
-  const data = requireUncached("../dataStore/recoveredData/states.json");
+  const data = requireUncached("../dataStore/accumulated/states.json");
   const meta = requireUncached("../dataStore/meta/meta.json");
   return {
     data: data[0].recovered,

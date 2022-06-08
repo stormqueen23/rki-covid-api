@@ -137,7 +137,7 @@ export async function GermanyCasesHistoryResponse(
   days?: number
 ): Promise<GermanyHistoryData<{ cases: number; date: Date }>> {
   const history = await getLastCasesHistory(days);
-  const highDate = AddDaysToDate(history.lastUpdate, -1); //highest date, witch is "datenstand" -1
+  const highDate = new Date(AddDaysToDate(history.lastUpdate, -1).setHours(0,0,0,0));
   const lowDate = days
     ? AddDaysToDate(highDate, (days - 1) * -1)
     : new Date("2020-01-01"); // lowest date if days is set, else set lowdate to 2020-01-01
@@ -191,7 +191,7 @@ export async function GermanyDeathsHistoryResponse(
   days?: number
 ): Promise<GermanyHistoryData<{ deaths: number; date: Date }>> {
   const history = await getLastDeathsHistory(days);
-  const highDate = AddDaysToDate(history.lastUpdate, -1); //highest date, witch is "datenstand" -1
+  const highDate = new Date(AddDaysToDate(history.lastUpdate, -1).setHours(0,0,0,0));
   const lowDate = days
     ? AddDaysToDate(highDate, (days - 1) * -1)
     : new Date("2020-01-01"); // lowest date if days is set, else set lowdate to 2020-01-01
@@ -211,7 +211,7 @@ export async function GermanyRecoveredHistoryResponse(
   days?: number
 ): Promise<GermanyHistoryData<{ recovered: number; date: Date }>> {
   const history = await getLastRecoveredHistory(days);
-  const highDate = AddDaysToDate(history.lastUpdate, -1); //highest date, witch is "datenstand" -1
+  const highDate = new Date(AddDaysToDate(history.lastUpdate, -1).setHours(0,0,0,0));
   const lowDate = days
     ? AddDaysToDate(highDate, (days - 1) * -1)
     : new Date("2020-01-01"); // lowest date if days is set, else set lowdate to 2020-01-01

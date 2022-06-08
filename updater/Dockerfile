@@ -17,7 +17,7 @@ RUN apt-get update \
   && pip install --no-cache-dir -r requirements.txt \
   && which cron \
   && rm -rf /etc/cron.*/* \
-  && crontab crontab2.file \
+  && crontab crontab_initial.file \
   && chmod 755 update1.sh update2.sh downloadDataDockerBuild.sh entrypoint.sh \
   && ./downloadDataDockerBuild.sh \
   && apt-get -y purge binutils build-essential wget \

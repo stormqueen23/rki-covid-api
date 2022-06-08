@@ -37,11 +37,3 @@ while [[ "$startDate" != "$maxDate" ]]; do
   # increase startDate by 1 day
   startDate=$(date -I -d "$startDate + 1 day")
 done
-# finaly get meta data as well, stored in ./Fallzahlen/
-wget -q "$URL_METADATA" -O "./dataStore/meta/meta.json"
-if [ $? -ne 0 ]; then
-  echo "unable to get ./Fallzahlen/RKI_COVID19_meta.json, try again later and rebuild the docker image!"
-  exit 1
-else 
-  echo "./dataStore/meta/meta.json saved"
-fi

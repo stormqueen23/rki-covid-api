@@ -155,8 +155,8 @@ BL.to_json(BL_json_path, orient="records", date_format="iso", force_ascii=False)
 # %% fixed-incidence
 LK = data_Base.copy()
 path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'dataStore', 'frozen-incidence')
-LK_json_path = os.path.join(path, 'FixFallzahlen_' + date_latest + '_LK.json')
-BL_json_path = os.path.join(path, 'FixFallzahlen_' + date_latest + '_BL.json')
+LK_json_path = os.path.join(path, 'frozen-incidence_' + date_latest + '_LK.json')
+BL_json_path = os.path.join(path, 'frozen-incidence_' + date_latest + '_BL.json')
 key_list_LK = ['IdLandkreis']
 key_list_BL = ['IdBundesland']
 LK['Meldedatum'] = pd.to_datetime(LK['Meldedatum']).dt.date

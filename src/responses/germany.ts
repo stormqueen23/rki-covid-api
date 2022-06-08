@@ -156,7 +156,7 @@ export async function GermanyCasesHistoryResponse(
 export async function GermanyWeekIncidenceHistoryResponse(
   days?: number
 ): Promise<GermanyHistoryData<{ weekIncidence: number; date: Date }>> {
-  if (days != null) {
+  if (days) {
     days += 6;
   }
 

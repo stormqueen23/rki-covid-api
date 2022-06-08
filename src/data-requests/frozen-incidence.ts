@@ -133,7 +133,7 @@ export async function getDistrictsFrozenIncidenceHistory(
       : districts[0].history[districts[0].history.length - 1].date;
   const today: Date = new Date(new Date().setHours(0, 0, 0));
   // get lastUpdate from local stored metaData
-  const meta = requireUncached("../../Fallzahlen/RKI_COVID19_meta.json");
+  const meta = requireUncached("../../dataStore/meta/meta.json");
   const lastFileDate = new Date(meta.modified);
   // if lastDate < today and lastDate <= lastFileDate get the missing dates from local stored json files
   // the json files are updated daily by container cronjob as soon as the new data is availible
@@ -147,7 +147,7 @@ export async function getDistrictsFrozenIncidenceHistory(
       getDayDifference(lastFileDate, lastDate) - 1
     );
     // add the missing date(s) to districts
-    const basename = "../../Fallzahlen/FixFallzahlen_XXXX-XX-XX_LK.json";
+    const basename = "../../dataStore/frozen-incidence/frozen-incidence_XXXX-XX-XX_LK.json";
     const startDay = days
       ? days <= maxNumberOfDays
         ? maxNumberOfDays - days + 1
@@ -316,7 +316,7 @@ export async function getStatesFrozenIncidenceHistory(
       : states[0].history[states[0].history.length - 1].date;
   const today = new Date(new Date().setHours(0, 0, 0));
   // get lastUpdate from local stored metaData
-  const meta = requireUncached("../../Fallzahlen/RKI_COVID19_meta.json");
+  const meta = requireUncached("../../dataStore/meta/meta.json");
   const lastFileDate = new Date(meta.modified);
   // if lastDate < today and lastDate <= lastFileDate get the missing dates from local stored json files
   // the json files are updated daily by container cronjob as soon as the new data is availible
@@ -331,7 +331,7 @@ export async function getStatesFrozenIncidenceHistory(
     );
     // add the missing date(s) to states
     const basename =
-      "../../Fallzahlen/frozen-incidence/FixFallzahlen_XXXX-XX-XX_BL.json";
+      "../../dataStore/frozen-incidence/frozen-incidence_XXXX-XX-XX_BL.json";
     const startDay = days
       ? days <= maxNumberOfDays
         ? maxNumberOfDays - days + 1

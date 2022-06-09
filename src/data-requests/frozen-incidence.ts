@@ -348,8 +348,8 @@ export async function getStatesFrozenIncidenceHistory(
           ? getStateIdByName(state.name)
           : 0;
         state.history.push({
-          weekIncidence: missingDateData[id].incidence_7d,
-          date: new Date(missingDateData[id].Datenstand),
+          weekIncidence: missingDateData[id.toString().padStart(2, "0")].incidence_7d,
+          date: new Date(missingDateData[id.toString().padStart(2, "0")].Datenstand),
         });
         return state;
       });

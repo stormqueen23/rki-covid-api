@@ -30,7 +30,7 @@ if [[ "$DATE" != "$lastModified" ]]; then
   # remove crontab
   crontab -r
   # set new crontab to run update1.sh every 15 minutes
-  crontab crontab1.file
+  crontab /usr/src/app/crontab1.file
   exit 1
 fi
 

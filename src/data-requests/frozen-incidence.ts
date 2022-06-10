@@ -136,7 +136,7 @@ export async function getDistrictsFrozenIncidenceHistory(
   const meta = requireUncached("../dataStore/meta/meta.json");
   const lastFileDate = new Date(meta.modified);
   // if lastDate < today and lastDate <= lastFileDate get the missing dates from local stored json files
-  // the json files are updated daily by container cronjob as soon as the new data is availible
+  // the json files are updated daily by container updater as soon as the new data is availible
   if (
     lastDate.getTime() < today.getTime() &&
     lastDate.getTime() <= lastFileDate.getTime()
@@ -319,7 +319,7 @@ export async function getStatesFrozenIncidenceHistory(
   const meta = requireUncached("../dataStore/meta/meta.json");
   const lastFileDate = new Date(meta.modified);
   // if lastDate < today and lastDate <= lastFileDate get the missing dates from local stored json files
-  // the json files are updated daily by container cronjob as soon as the new data is availible
+  // the json files are updated daily by container updater as soon as the new data is availible
   if (
     lastDate.getTime() < today.getTime() &&
     lastDate.getTime() <= lastFileDate.getTime()
@@ -343,13 +343,18 @@ export async function getStatesFrozenIncidenceHistory(
         new Date(AddDaysToDate(lastDate, day)).toISOString().split("T").shift()
       );
       const missingDateData = requireUncached(filename);
+      const keys = Object.keys(missingDateData);
+      const keyLenght = keys[0].length
       states = states.map((state) => {
-        const id = getStateIdByName(state.name)
-          ? getStateIdByName(state.name)
-          : 0;
+        let id = getStateIdByName(state.name)
+          ? getStateIdByName(state.name).toString()
+          : "0";
+        if (keyLenght > 1){
+          id = id.padStart(2, "0")
+        }
         state.history.push({
-          weekIncidence: missingDateData[id.toString().padStart(2, "0")].incidence_7d,
-          date: new Date(missingDateData[id.toString().padStart(2, "0")].Datenstand),
+          weekIncidence: missingDateData[id].incidence_7d,
+          date: new Date(missingDateData[id].Datenstand),
         });
         return state;
       });

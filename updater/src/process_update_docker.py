@@ -117,7 +117,6 @@ LK_json_path = os.path.join(path, 'districts.json')
 BL_json_path = os.path.join(path, 'states.json')
 key_list_LK = ['IdLandkreis', 'Meldedatum']
 key_list_BL = ['IdBundesland', 'Meldedatum']
-#LK.drop(['Bundesland', 'Landkreis'], inplace=True, axis=1)
 LK['Meldedatum'] = pd.to_datetime(LK['Meldedatum']).dt.date
 datenstand = pd.to_datetime(LK['Datenstand'].iloc[0], format='%d.%m.%Y, %H:%M Uhr')
 LK['Datenstand'] = datenstand.date()
@@ -160,7 +159,6 @@ BL_json_path = os.path.join(path, 'frozen-incidence_' + date_latest + '_BL.json'
 key_list_LK = ['IdLandkreis']
 key_list_BL = ['IdBundesland']
 LK['Meldedatum'] = pd.to_datetime(LK['Meldedatum']).dt.date
-meldedatum_max = LK['Meldedatum'].max()
 datenstand = pd.to_datetime(LK['Datenstand'].iloc[0], format='%d.%m.%Y, %H:%M Uhr')
 LK['AnzahlFall_neu'] = np.where(LK['NeuerFall'].isin([-1, 1]), LK['AnzahlFall'], 0)
 LK['AnzahlFall'] = np.where(LK['NeuerFall'].isin([0, 1]), LK['AnzahlFall'], 0)

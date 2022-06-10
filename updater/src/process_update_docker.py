@@ -162,7 +162,7 @@ LK['Meldedatum'] = pd.to_datetime(LK['Meldedatum']).dt.date
 datenstand = pd.to_datetime(LK['Datenstand'].iloc[0], format='%d.%m.%Y, %H:%M Uhr')
 LK['AnzahlFall_neu'] = np.where(LK['NeuerFall'].isin([-1, 1]), LK['AnzahlFall'], 0)
 LK['AnzahlFall'] = np.where(LK['NeuerFall'].isin([0, 1]), LK['AnzahlFall'], 0)
-LK['AnzahlFall_7d'] = np.where(LK['Meldedatum'] > (datenstand - timedelta(days=8)), LK['AnzahlFall'], 0)
+LK['AnzahlFall_7d'] = np.where(LK['Meldedatum'] > (datenstand.date() - timedelta(days=8)), LK['AnzahlFall'], 0)
 LK['Datenstand'] = datenstand.date()
 LK.drop(['NeuerFall', 'NeuerTodesfall', 'AnzahlFall', 'AnzahlTodesfall', 'AnzahlFall_neu', 'Landkreis', 'Bundesland', 'NeuGenesen', 'AnzahlGenesen'], inplace=True, axis=1)
 BL = LK.copy()

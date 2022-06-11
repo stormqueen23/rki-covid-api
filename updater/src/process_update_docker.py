@@ -3,11 +3,9 @@ import re
 from datetime import *
 import numpy as np
 import pandas as pd
-import pytz
 
 # %%
 url = "https://www.arcgis.com/sharing/rest/content/items/f10774f1c63e40168479a1feb6c7ca74/data"
-date_latest = datetime.now(pytz.timezone('Europe/Berlin')).date().strftime('%Y-%m-%d')
 BV_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'Bevoelkerung',
                                'Bevoelkerung.csv')
 BV_dtypes = {'AGS': 'str', 'Name': 'str', 'GueltigAb': 'object', 'GueltigBis': 'object', 'Einwohner': 'Int32'}
@@ -154,8 +152,6 @@ BL.to_json(BL_json_path, orient="records", date_format="iso", force_ascii=False)
 # %% fixed-incidence
 LK = data_Base.copy()
 path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'dataStore', 'frozen-incidence')
-LK_json_path = os.path.join(path, 'frozen-incidence_' + date_latest + '_LK.json')
-BL_json_path = os.path.join(path, 'frozen-incidence_' + date_latest + '_BL.json')
 key_list_LK = ['IdLandkreis']
 key_list_BL = ['IdBundesland']
 LK['Meldedatum'] = pd.to_datetime(LK['Meldedatum']).dt.date
@@ -206,6 +202,8 @@ BL['incidence_7d'] = BL['AnzahlFall_7d'] / BL['population'] * 100000
 BL.drop(['population'], inplace=True, axis=1)
 
 # %% store json files
+LK_json_path = os.path.join(path, 'frozen-incidence_' + datenstand.date().strftime('%Y-%m-%d') + '_LK.json')
+BL_json_path = os.path.join(path, 'frozen-incidence_' + datenstand.date().strftime('%Y-%m-%d') + '_BL.json')
 LK.to_json(LK_json_path, orient="index", date_format="iso", force_ascii=False)
 BL.to_json(BL_json_path, orient="index", date_format="iso", force_ascii=False)
 

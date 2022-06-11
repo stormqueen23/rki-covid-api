@@ -1,6 +1,4 @@
 import requests, os
-from datetime import datetime
-import pytz
 
 class DownloadFile():
     def __init__(self,url,filename,download_path):

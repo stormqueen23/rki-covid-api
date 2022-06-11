@@ -8,6 +8,8 @@ import pandas as pd
 url = "https://www.arcgis.com/sharing/rest/content/items/f10774f1c63e40168479a1feb6c7ca74/data"
 BV_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'Bevoelkerung',
                                'Bevoelkerung.csv')
+LK_dtypes = {'Datenstand': 'object', 'IdLandkreis': 'str','Landkreis': 'str', 'AnzahlFall_7d': 'Int32', 'incidence_7d': 'float64'}
+BL_dtypes = {'Datenstand': 'object', 'IdBundesland': 'str','Bundesland': 'str', 'AnzahlFall_7d': 'Int32', 'incidence_7d': 'float64'}
 BV_dtypes = {'AGS': 'str', 'Name': 'str', 'GueltigAb': 'object', 'GueltigBis': 'object', 'Einwohner': 'Int32'}
 CV_dtypes = {'Datenstand': 'object', 'IdBundesland': 'str', 'Bundesland': 'str', 'IdLandkreis': 'str',
              'Landkreis': 'str', 'NeuerFall': 'Int8', 'NeuerTodesfall': 'Int8', 'NeuGenesen': 'Int8',
@@ -19,6 +21,9 @@ BV['GueltigAb'] = pd.to_datetime(BV['GueltigAb'])
 BV['GueltigBis'] = pd.to_datetime(BV['GueltigBis'])
 
 # %% load covid latest from web
+#path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data')
+#testfile = os.path.join(path, 'RKI_COVID19_2022-06-10.csv.gz')
+#data_Base = pd.read_csv(testfile, usecols=CV_dtypes.keys(), dtype=CV_dtypes)
 data_Base = pd.read_csv(url, usecols=CV_dtypes.keys(), dtype=CV_dtypes)
 data_Base['IdBundesland'] = data_Base['IdBundesland'].str.zfill(2)
 
@@ -171,37 +176,49 @@ agg_key = {
     for c in LK.columns
     if c not in key_list_LK
 }
-LK = LK.groupby(key_list_LK, as_index=True).agg(agg_key)
+LK = LK.groupby(key_list_LK, as_index=False).agg(agg_key)
 agg_key = {
     c: 'max' if c in ['Meldedatum', 'Datenstand'] else 'sum'
     for c in BL.columns
     if c not in key_list_BL
 }
-BL = BL.groupby(key_list_BL, as_index=True).agg(agg_key)
-ID0 = ID0.groupby(key_list_BL, as_index=True).agg(agg_key)
+BL = BL.groupby(key_list_BL, as_index=False).agg(agg_key)
+BL.reset_index(inplace=True, drop=True)
+ID0 = ID0.groupby(key_list_BL, as_index=False).agg(agg_key)
 BL = pd.concat([ID0, BL])
+BL.reset_index(inplace=True, drop=True)
 BL.drop(['Meldedatum'], inplace=True, axis=1)
 LK.drop(['Meldedatum'], inplace=True, axis=1)
-LK.sort_values(by=key_list_LK, inplace=True)
-BL.sort_values(by=key_list_BL, inplace=True)
-LK_pop_mask = (BV['AGS'].isin(LK.index)) & (BV['GueltigAb'] <= datenstand) & (BV['GueltigBis'] >= datenstand)
+LK_pop_mask = (BV['AGS'].isin(LK['IdLandkreis'])) & (BV['GueltigAb'] <= datenstand) & (BV['GueltigBis'] >= datenstand)
 LK_pop = BV[LK_pop_mask]
-LK_pop.set_index(['AGS'], inplace=True, drop=True)
+LK_pop.reset_index(inplace=True, drop=True)
 LK['population'] = LK_pop['Einwohner']
 LK.insert(loc=0, column='Landkreis', value=LK_pop['Name'])
 LK['AnzahlFall_7d'] = LK['AnzahlFall_7d'].astype(int)
 LK['incidence_7d'] = LK['AnzahlFall_7d'] / LK['population'] * 100000
 LK.drop(['population'], inplace=True, axis=1)
-BL_pop_mask = (BV['AGS'].isin(BL.index)) & (BV['GueltigAb'] <= datenstand) & (BV['GueltigBis'] >= datenstand)
+BL_pop_mask = (BV['AGS'].isin(BL['IdBundesland'])) & (BV['GueltigAb'] <= datenstand) & (BV['GueltigBis'] >= datenstand)
 BL_pop = BV[BL_pop_mask]
-BL_pop.set_index(['AGS'], inplace=True, drop=True)
+BL_pop.reset_index(inplace=True, drop=True)
 BL['population'] = BL_pop['Einwohner']
 BL.insert(loc=0, column='Bundesland', value=BL_pop['Name'])
 BL['AnzahlFall_7d'] = BL['AnzahlFall_7d'].astype(int)
 BL['incidence_7d'] = BL['AnzahlFall_7d'] / BL['population'] * 100000
 BL.drop(['population'], inplace=True, axis=1)
 
+# %% store csv files
+# LK_csv_path = os.path.join(path, 'frozen-incidence_' + datenstand.date().strftime('%Y-%m-%d') + '_LK.csv')
+# BL_csv_path = os.path.join(path, 'frozen-incidence_' + datenstand.date().strftime('%Y-%m-%d') + '_BL.csv')
+# with open(LK_csv_path, 'wb') as csvfile:
+#     LK.to_csv(csvfile, index=False, header=True, line_terminator='\n', encoding='utf-8',
+#                 date_format='%Y-%m-%d', columns=LK_dtypes.keys())
+# with open(BL_csv_path, 'wb') as csvfile:
+#     BL.to_csv(csvfile, index=False, header=True, line_terminator='\n', encoding='utf-8',
+#                date_format='%Y-%m-%d', columns=BL_dtypes.keys())
+
 # %% store json files
+LK.set_index(['IdLandkreis'], inplace=True, drop=True)
+BL.set_index(['IdBundesland'], inplace=True, drop=True)
 LK_json_path = os.path.join(path, 'frozen-incidence_' + datenstand.date().strftime('%Y-%m-%d') + '_LK.json')
 BL_json_path = os.path.join(path, 'frozen-incidence_' + datenstand.date().strftime('%Y-%m-%d') + '_BL.json')
 LK.to_json(LK_json_path, orient="index", date_format="iso", force_ascii=False)
@@ -211,7 +228,7 @@ BL.to_json(BL_json_path, orient="index", date_format="iso", force_ascii=False)
 iso_date_re = '([0-9]{4})(-?)(1[0-2]|0[1-9])\\2(3[01]|0[1-9]|[12][0-9])'
 file_list = os.listdir(path)
 file_list.sort(reverse=False)
-pattern = 'FixFallzahlen'
+pattern = 'frozen-incidence'
 all_files = []
 for file in file_list:
     file_path_full = os.path.join(path, file)

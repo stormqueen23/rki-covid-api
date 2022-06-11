@@ -28,4 +28,3 @@ class DownloadFile():
         with open(self.full_path, 'wb') as file:
             file.write(self.content)
             file.close()
-                    

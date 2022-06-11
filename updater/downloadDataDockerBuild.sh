@@ -14,6 +14,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 maxDate=$(date -d "@$maxDate" '+%Y-%m-%d')
+maxDate=$(date -I -d "$maxDate + 1 day")
 
 # set startDate to lastMonday
 startDate=$lastMonday
